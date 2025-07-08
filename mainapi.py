@@ -4,7 +4,12 @@ from transformers import pipeline
 
 app = FastAPI(title="Local2English API", description="Hindi to English Translator")
 
-translator = pipeline("translation", model="Helsinki-NLP/opus-mt-hi-en")
+# Load translation pipeline without torch
+translator = pipeline(
+    "translation",
+    model="Helsinki-NLP/opus-mt-hi-en",
+    device=-1  # force CPU usage, avoids torch dependency
+)
 
 class TranslateRequest(BaseModel):
     text: str
