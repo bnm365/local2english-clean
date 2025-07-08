@@ -5,7 +5,7 @@ import os
 
 app = FastAPI(title="Local2English API", description="Hindi to English Translator")
 
-# Optionally read Hugging Face token from env variable
+# Load token from environment variable
 HF_TOKEN = os.getenv("HF_TOKEN")
 headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
 
@@ -19,10 +19,19 @@ def translate_text(payload: TranslateRequest):
         headers=headers,
         json={"inputs": payload.text}
     )
-    result = response.json()
 
-    # Successful translation response
+    try:
+        result = response.json()
+    except Exception as e:
+        return {
+            "error": "Response was not valid JSON",
+            "status_code": response.status_code,
+            "text": response.text
+        }
+
+    # Successful case
     if isinstance(result, list) and "translation_text" in result[0]:
         return {"translated": result[0]["translation_text"]}
-    # Hugging Face API error
+
+    # API returned error JSON
     return {"error": result}
