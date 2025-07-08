@@ -1,8 +1,13 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import requests
+import os
 
 app = FastAPI(title="Local2English API", description="Hindi to English Translator")
+
+# Optionally read Hugging Face token from env variable
+HF_TOKEN = os.getenv("HF_TOKEN")
+headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
 
 class TranslateRequest(BaseModel):
     text: str
@@ -11,11 +16,13 @@ class TranslateRequest(BaseModel):
 def translate_text(payload: TranslateRequest):
     response = requests.post(
         "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-hi-en",
-        headers={"Authorization": "Bearer hf_xxx"},  # optional, works without for small usage
+        headers=headers,
         json={"inputs": payload.text}
     )
     result = response.json()
+
+    # Successful translation response
     if isinstance(result, list) and "translation_text" in result[0]:
         return {"translated": result[0]["translation_text"]}
-    else:
-        return {"error": result}
+    # Hugging Face API error
+    return {"error": result}
