@@ -11,7 +11,7 @@ class TranslateRequest(BaseModel):
 def translate_text(data: TranslateRequest):
     response = requests.post(
         "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-hi-en",
-        headers={},  # 🚫 Make sure this is an **empty dict**, no Authorization!
+        headers={},  # 🔥 REMOVE token / authorization header here
         json={"inputs": data.text}
     )
 
@@ -20,9 +20,10 @@ def translate_text(data: TranslateRequest):
     except Exception:
         return {
             "error": "Failed to decode response from Hugging Face.",
-            "text": response.text
+            "raw_response": response.text
         }
 
+    # Return the translated result if format is correct
     if isinstance(result, list) and "translation_text" in result[0]:
         return {"translated": result[0]["translation_text"]}
     else:
